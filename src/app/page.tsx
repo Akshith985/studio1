@@ -1,3 +1,4 @@
+
 import { StockWatchlist } from '@/components/stock-watchlist';
 import { initialStocks } from '@/lib/data';
 import { Activity, PanelLeft } from 'lucide-react';
@@ -49,7 +50,7 @@ export default function Home() {
              <StockWatchlist initialData={initialStocks} />
           </TabsContent>
           <TabsContent value="chart">
-             <StockChart ticker="AAPL" initialPrice={172.45} />
+             <StockChart stocks={initialStocks} />
           </TabsContent>
           <TabsContent value="news">
              <NewsFeed />
