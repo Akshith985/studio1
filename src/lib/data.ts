@@ -50,3 +50,45 @@ export const initialStocks: Stock[] = [
     marketCap: "1.21T",
   },
 ];
+
+export const portfolioData = Array.from({ length: 30 }, (_, i) => {
+  const date = new Date();
+  date.setDate(date.getDate() - (29 - i));
+  return {
+    date: date.toISOString().split('T')[0],
+    value: 100000 + (i * 1000) + (Math.random() - 0.5) * 5000 * i,
+  };
+});
+
+export const newsData = [
+  {
+    id: 1,
+    title: "Global Markets Rally on Positive Economic Data",
+    source: "Reuters",
+    time: "2h ago",
+  },
+  {
+    id: 2,
+    title: "Tech Stocks Surge as AI Optimism Continues",
+    source: "Bloomberg",
+    time: "3h ago",
+  },
+  {
+    id: 3,
+    title: "Fed Chair Signals Patience on Interest Rate Hikes",
+    source: "Wall Street Journal",
+    time: "5h ago",
+  },
+  {
+    id: 4,
+    title: "Oil Prices Fluctuate Amidst Supply Concerns",
+    source: "Associated Press",
+    time: "8h ago",
+  },
+  {
+    id: 5,
+    title: "New IPO sees strong debut on the stock market",
+    source: "MarketWatch",
+    time: "1d ago",
+  },
+];

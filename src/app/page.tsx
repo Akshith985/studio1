@@ -3,6 +3,8 @@ import { initialStocks } from '@/lib/data';
 import { Activity, PanelLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { PortfolioChart } from '@/components/portfolio-chart';
+import { NewsFeed } from '@/components/news-feed';
 
 export default function Home() {
   return (
@@ -17,9 +19,7 @@ export default function Home() {
           </SheetTrigger>
           <SheetContent side="left" className="sm:max-w-xs">
             <nav className="grid gap-6 text-lg font-medium">
-              <div
-                className="group flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:text-base"
-              >
+              <div className="group flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:text-base">
                 <Activity className="h-5 w-5 transition-all group-hover:scale-110" />
                 <span className="sr-only">StockWatch</span>
               </div>
@@ -30,8 +30,14 @@ export default function Home() {
           <h1 className="text-lg font-semibold md:text-2xl">StockWatch</h1>
         </div>
       </header>
-      <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
-        <StockWatchlist initialData={initialStocks} />
+      <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8 lg:grid-cols-3 xl:grid-cols-3">
+        <div className="grid auto-rows-max items-start gap-4 md:gap-8 lg:col-span-2">
+          <StockWatchlist initialData={initialStocks} />
+        </div>
+        <div className="grid auto-rows-max items-start gap-4 md:gap-8">
+          <PortfolioChart />
+          <NewsFeed />
+        </div>
       </main>
     </div>
   );
