@@ -12,6 +12,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
+import { TechnicalAnalysisControls } from '@/components/technical-analysis-controls';
 
 export default function Home() {
   return (
@@ -43,6 +44,7 @@ export default function Home() {
             <TabsList>
               <TabsTrigger value="watchlist">Watchlist</TabsTrigger>
               <TabsTrigger value="chart">Stock Chart</TabsTrigger>
+              <TabsTrigger value="analysis">Analysis</TabsTrigger>
               <TabsTrigger value="news">News</TabsTrigger>
             </TabsList>
           </div>
@@ -51,6 +53,9 @@ export default function Home() {
           </TabsContent>
           <TabsContent value="chart">
              <StockChart stocks={initialStocks} />
+          </TabsContent>
+          <TabsContent value="analysis">
+            <TechnicalAnalysisControls />
           </TabsContent>
           <TabsContent value="news">
              <NewsFeed />
