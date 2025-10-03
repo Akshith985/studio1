@@ -10,3 +10,8 @@ export type Stock = {
 export type WatchlistItem = Stock & {
   lastPrice?: number;
 };
+
+export type ChartDataPoint = {
+    time: string;
+    price: number;
+};

@@ -3,7 +3,7 @@ import { initialStocks } from '@/lib/data';
 import { Activity, PanelLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { PortfolioChart } from '@/components/portfolio-chart';
+import { StockChart } from '@/components/stock-chart';
 import { NewsFeed } from '@/components/news-feed';
 import {
   Tabs,
@@ -41,15 +41,15 @@ export default function Home() {
           <div className="flex items-center">
             <TabsList>
               <TabsTrigger value="watchlist">Watchlist</TabsTrigger>
-              <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
+              <TabsTrigger value="chart">Stock Chart</TabsTrigger>
               <TabsTrigger value="news">News</TabsTrigger>
             </TabsList>
           </div>
           <TabsContent value="watchlist">
              <StockWatchlist initialData={initialStocks} />
           </TabsContent>
-          <TabsContent value="portfolio">
-             <PortfolioChart />
+          <TabsContent value="chart">
+             <StockChart ticker="AAPL" initialPrice={172.45} />
           </TabsContent>
           <TabsContent value="news">
              <NewsFeed />
