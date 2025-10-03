@@ -5,6 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { PortfolioChart } from '@/components/portfolio-chart';
 import { NewsFeed } from '@/components/news-feed';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
 
 export default function Home() {
   return (
@@ -30,14 +36,25 @@ export default function Home() {
           <h1 className="text-lg font-semibold md:text-2xl">StockWatch</h1>
         </div>
       </header>
-      <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8 lg:grid-cols-3 xl:grid-cols-3">
-        <div className="grid auto-rows-max items-start gap-4 md:gap-8 lg:col-span-2">
-          <StockWatchlist initialData={initialStocks} />
-        </div>
-        <div className="grid auto-rows-max items-start gap-4 md:gap-8">
-          <PortfolioChart />
-          <NewsFeed />
-        </div>
+      <main className="flex-1 p-4 sm:px-6 sm:py-0 md:gap-8">
+        <Tabs defaultValue="watchlist">
+          <div className="flex items-center">
+            <TabsList>
+              <TabsTrigger value="watchlist">Watchlist</TabsTrigger>
+              <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
+              <TabsTrigger value="news">News</TabsTrigger>
+            </TabsList>
+          </div>
+          <TabsContent value="watchlist">
+             <StockWatchlist initialData={initialStocks} />
+          </TabsContent>
+          <TabsContent value="portfolio">
+             <PortfolioChart />
+          </TabsContent>
+          <TabsContent value="news">
+             <NewsFeed />
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
