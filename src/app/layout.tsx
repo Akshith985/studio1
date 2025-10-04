@@ -3,8 +3,8 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
-  title: 'StockWatch',
-  description: 'A modern stock market monitoring application.',
+  title: 'TradeQuest',
+  description: 'An RPG for learning investment.',
 };
 
 export default function RootLayout({

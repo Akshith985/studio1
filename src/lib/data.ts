@@ -1,4 +1,4 @@
-import type { Stock } from "@/lib/types";
+import type { Stock, Quest } from "@/lib/types";
 
 export const initialStocks: Stock[] = [
   {
@@ -91,4 +91,28 @@ export const newsData = [
     source: "MarketWatch",
     time: "1d ago",
   },
+];
+
+export const initialQuests: Quest[] = [
+  {
+    id: 1,
+    title: "The First Step: Add a Stock",
+    description: "Every great investor starts with a single stock. Add your first stock to your watchlist to begin your journey.",
+    xp: 25,
+    status: 'available',
+  },
+  {
+    id: 2,
+    title: "Market Watcher: Diversify",
+    description: "Don't put all your eggs in one basket. Add at least 3 different stocks to your watchlist.",
+    xp: 50,
+    status: 'available',
+  },
+    {
+    id: 3,
+    title: "News Hound: Get Informed",
+    description: "Knowledge is power. Use the AI News Summary feature for one of your watched stocks.",
+    xp: 75,
+    status: 'available',
+  }
 ];

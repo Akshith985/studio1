@@ -15,3 +15,11 @@ export type ChartDataPoint = {
     time: string;
     price: number;
 };
+
+export type Quest = {
+  id: number;
+  title: string;
+  description: string;
+  xp: number;
+  status: 'available' | 'completed';
+};

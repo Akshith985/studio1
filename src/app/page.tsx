@@ -1,17 +1,17 @@
-
 import { StockWatchlist } from '@/components/stock-watchlist';
-import { initialStocks } from '@/lib/data';
-import { Activity, PanelLeft } from 'lucide-react';
+import { initialStocks, initialQuests } from '@/lib/data';
+import { Gem, PanelLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { StockChart } from '@/components/stock-chart';
-import { NewsFeed } from '@/components/news-feed';
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
+import { PlayerProfile } from '@/components/player-profile';
+import { QuestBoard } from '@/components/quest-board';
 import { TechnicalAnalysisControls } from '@/components/technical-analysis-controls';
 
 export default function Home() {
@@ -28,26 +28,32 @@ export default function Home() {
           <SheetContent side="left" className="sm:max-w-xs">
             <nav className="grid gap-6 text-lg font-medium">
               <div className="group flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:text-base">
-                <Activity className="h-5 w-5 transition-all group-hover:scale-110" />
-                <span className="sr-only">StockWatch</span>
+                <Gem className="h-5 w-5 transition-all group-hover:scale-110" />
+                <span className="sr-only">TradeQuest</span>
               </div>
             </nav>
           </SheetContent>
         </Sheet>
-        <div className="relative ml-auto flex-1 md:grow-0">
-          <h1 className="text-lg font-semibold md:text-2xl">StockWatch</h1>
+        <div className="relative flex-1">
+          <h1 className="text-lg font-semibold md:text-2xl">TradeQuest</h1>
+        </div>
+        <div className="relative ml-auto flex-none">
+          <PlayerProfile />
         </div>
       </header>
       <main className="flex-1 p-4 sm:px-6 sm:py-0 md:gap-8">
-        <Tabs defaultValue="watchlist">
+        <Tabs defaultValue="quests">
           <div className="flex items-center">
             <TabsList>
+              <TabsTrigger value="quests">Quests</TabsTrigger>
               <TabsTrigger value="watchlist">Watchlist</TabsTrigger>
               <TabsTrigger value="chart">Stock Chart</TabsTrigger>
               <TabsTrigger value="analysis">Analysis</TabsTrigger>
-              <TabsTrigger value="news">News</TabsTrigger>
             </TabsList>
           </div>
+          <TabsContent value="quests">
+             <QuestBoard initialQuests={initialQuests} />
+          </TabsContent>
           <TabsContent value="watchlist">
              <StockWatchlist initialData={initialStocks} />
           </TabsContent>
@@ -55,10 +61,7 @@ export default function Home() {
              <StockChart stocks={initialStocks} />
           </TabsContent>
           <TabsContent value="analysis">
-            <TechnicalAnalysisControls />
-          </TabsContent>
-          <TabsContent value="news">
-             <NewsFeed />
+             <TechnicalAnalysisControls />
           </TabsContent>
         </Tabs>
       </main>
