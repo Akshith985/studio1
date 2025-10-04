@@ -15,6 +15,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getStockName } from '@/lib/utils';
 import { NewsWatchView } from '@/components/news-watch-view';
 import { SplashScreen } from '@/components/splash-screen';
+import { WelcomeDialog } from '@/components/welcome-dialog';
+import Image from 'next/image';
 
 type ActiveView = 'home' | 'quests' | 'market' | 'newswatch';
 type ChartData = (Record<string, string | number> & { time: string })[];
@@ -54,6 +56,7 @@ export default function Home() {
   const [indicators, setIndicators] = React.useState<Indicator[]>([]);
   const [filters, setFilters] = React.useState<ScreenerFilter[]>([]);
   const [showSplash, setShowSplash] = React.useState(true);
+  const [showWelcome, setShowWelcome] = React.useState(false);
 
   const [watchlist, setWatchlist] = React.useState<WatchlistItem[]>(() =>
     initialStocks.map(s => ({ ...s, lastPrice: s.price }))
@@ -64,10 +67,17 @@ export default function Home() {
   );
 
   React.useEffect(() => {
-    const timer = setTimeout(() => {
+    const splashTimer = setTimeout(() => {
       setShowSplash(false);
+      // Check if the user has seen the welcome message before
+      const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
+      if (!hasSeenWelcome) {
+        setShowWelcome(true);
+        localStorage.setItem('hasSeenWelcome', 'true');
+      }
     }, 2500);
-    return () => clearTimeout(timer);
+
+    return () => clearTimeout(splashTimer);
   }, []);
 
   const handleAddStock = (ticker: string) => {
@@ -170,7 +180,18 @@ export default function Home() {
   const renderContent = () => {
     switch (activeView) {
       case 'home':
-        return <WorldMap />;
+        return (
+          <div className="flex flex-col items-center justify-center h-full p-4">
+            <Image
+              src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXlweGhyZjNkZm02YXQ2NGZnMDJvbXA4YWMxMmlpYnJhOXc4cjZnMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/8WiVcu7MerGtarBGGU/giphy.gif"
+              alt="Welcome GIF"
+              width={200}
+              height={200}
+              unoptimized
+            />
+            <WorldMap />
+          </div>
+        );
       case 'quests':
         return (
           <div className="p-4">
@@ -221,6 +242,7 @@ export default function Home() {
       <PlayerHeader />
       <main className="flex-1 overflow-y-auto pb-20">{renderContent()}</main>
       <BottomNavBar activeView={activeView} setActiveView={setActiveView} />
+       <WelcomeDialog open={showWelcome} onOpenChange={setShowWelcome} />
     </div>
   );
 }

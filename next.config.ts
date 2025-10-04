@@ -34,6 +34,12 @@ const nextConfig: NextConfig = {
         hostname: 'img.freepik.com',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'media4.giphy.com',
+        port: '',
+        pathname: '/**',
       }
     ],
   },
