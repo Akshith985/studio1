@@ -10,18 +10,20 @@ import { QuestBoard } from '@/components/quest-board';
 import { StockWatchlist } from '@/components/stock-watchlist';
 import { StockChart } from '@/components/stock-chart';
 import { TechnicalAnalysisControls } from '@/components/technical-analysis-controls';
-import type { Indicator, ScreenerFilter, Stock, WatchlistItem } from '@/lib/types';
+import type { Indicator, ScreenerFilter, WatchlistItem } from '@/lib/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getStockName } from '@/lib/utils';
 import { NewsWatchView } from '@/components/news-watch-view';
 import { SplashScreen } from '@/components/splash-screen';
 import Image from 'next/image';
 import { WelcomeMessage } from '@/components/welcome-message';
+import { getStockQuote } from './actions';
+import { useToast } from '@/hooks/use-toast';
 
 type ActiveView = 'home' | 'quests' | 'market' | 'newswatch';
 type ChartData = (Record<string, string | number> & { time: string })[];
 
-const generateInitialChartData = (stocks: Stock[]): ChartData => {
+const generateInitialChartData = (stocks: WatchlistItem[]): ChartData => {
   const now = new Date();
   const data: ChartData = [];
   const prices: { [key: string]: number } = {};
@@ -30,16 +32,16 @@ const generateInitialChartData = (stocks: Stock[]): ChartData => {
   });
 
   for (let i = 59; i >= 0; i--) {
-    const time = new Date(now.getTime() - i * 1000);
+    const time = new Date(now.getTime() - i * 60000); // Minutes ago
     const dataPoint: Record<string, string | number> & { time: string } = {
       time: time.toLocaleTimeString([], {
         hour: '2-digit',
         minute: '2-digit',
-        second: '2-digit',
       }),
     };
     stocks.forEach(stock => {
-      const changeFactor = (Math.random() - 0.5) * 0.01;
+      // Simulate historical data with slight variations
+      const changeFactor = (Math.random() - 0.5) * 0.1;
       prices[stock.ticker] *= 1 + changeFactor;
       if (i === 59) {
         prices[stock.ticker] = stock.price;
@@ -56,7 +58,8 @@ export default function Home() {
   const [indicators, setIndicators] = React.useState<Indicator[]>([]);
   const [filters, setFilters] = React.useState<ScreenerFilter[]>([]);
   const [showSplash, setShowSplash] = React.useState(true);
-  
+  const { toast } = useToast();
+
   const [watchlist, setWatchlist] = React.useState<WatchlistItem[]>(() =>
     initialStocks.map(s => ({ ...s, lastPrice: s.price }))
   );
@@ -74,30 +77,42 @@ export default function Home() {
   }, []);
   
 
-  const handleAddStock = (ticker: string) => {
+  const handleAddStock = async (ticker: string) => {
     if (watchlist.find(s => s.ticker.toUpperCase() === ticker.toUpperCase())) {
+      toast({
+        variant: "destructive",
+        title: "Stock Exists",
+        description: `${ticker.toUpperCase()} is already in your watchlist.`,
+      });
       return;
     }
-    const newPrice = parseFloat((Math.random() * 500 + 20).toFixed(2));
+    
+    const result = await getStockQuote(ticker);
+    if (!result.success || !result.data) {
+       toast({
+        variant: "destructive",
+        title: "Error adding stock",
+        description: result.error || 'Could not fetch data for this ticker.',
+      });
+      return;
+    }
+    
     const newStock: WatchlistItem = {
-      ticker: ticker.toUpperCase(),
-      name: getStockName(ticker),
-      price: newPrice,
-      change: 0,
-      changePercent: 0,
-      marketCap: 'N/A',
-      lastPrice: newPrice,
+      ticker: result.data.ticker,
+      name: getStockName(result.data.ticker),
+      price: result.data.price,
+      change: result.data.change,
+      changePercent: result.data.changePercent,
+      marketCap: 'N/A', // Not provided by this endpoint
+      lastPrice: result.data.price,
     };
 
-    // Add new stock to watchlist
     setWatchlist(prev => [...prev, newStock]);
 
-    // Add initial data for the new stock to the chart
     setChartData(prevData => {
       const newData = [...prevData];
       newData.forEach(dataPoint => {
-        dataPoint[newStock.ticker] =
-          newStock.price * (1 + (Math.random() - 0.5) * 0.05);
+        dataPoint[newStock.ticker] = newStock.price * (1 + (Math.random() - 0.5) * 0.05);
       });
       return newData;
     });
@@ -107,29 +122,30 @@ export default function Home() {
     setWatchlist(prev => prev.filter(stock => stock.ticker !== ticker));
   };
 
+  // Real-time data fetching effect
   React.useEffect(() => {
-    const interval = setInterval(() => {
-      // Update watchlist
-      const newWatchlist = watchlist.map(stock => {
-        const changeFactor = (Math.random() - 0.5) * 0.02; // -1% to +1% change
-        const newPrice = stock.price * (1 + changeFactor);
-        const originalPrice = stock.price / (1 + stock.changePercent / 100);
-        const change = newPrice - originalPrice;
-        const changePercent = (change / originalPrice) * 100;
-        return {
-          ...stock,
-          lastPrice: stock.price,
-          price: parseFloat(newPrice.toFixed(2)),
-          change: parseFloat(change.toFixed(2)),
-          changePercent: parseFloat(changePercent.toFixed(2)),
-        };
-      });
-      setWatchlist(newWatchlist);
+    if (watchlist.length === 0) return;
 
-      // Update chart data
+    const updatePrices = async () => {
+      const updatedWatchlist = await Promise.all(
+        watchlist.map(async (stock) => {
+          const result = await getStockQuote(stock.ticker);
+          if (result.success && result.data) {
+            return {
+              ...stock,
+              lastPrice: stock.price,
+              price: result.data.price,
+              change: result.data.change,
+              changePercent: result.data.changePercent,
+            };
+          }
+          return stock; // Return old data if fetch fails
+        })
+      );
+      setWatchlist(updatedWatchlist);
+
+      // Update chart data with new prices
       setChartData(currentData => {
-        if (newWatchlist.length === 0) return [];
-
         const newDataPoint: Record<string, string | number> & { time: string } = {
           time: new Date().toLocaleTimeString([], {
             hour: '2-digit',
@@ -138,7 +154,7 @@ export default function Home() {
           }),
         };
 
-        newWatchlist.forEach(stock => {
+        updatedWatchlist.forEach(stock => {
           newDataPoint[stock.ticker] = stock.price;
         });
 
@@ -148,10 +164,13 @@ export default function Home() {
         }
         return newData;
       });
-    }, 1500);
+    };
+
+    updatePrices(); // Initial update
+    const interval = setInterval(updatePrices, 60000); // Update every 60 seconds
 
     return () => clearInterval(interval);
-  }, [watchlist]);
+  }, [watchlist.map(s => s.ticker).join(',')]); // Rerun if the list of tickers changes
 
   const filteredStocks = React.useMemo(() => {
     if (filters.length === 0) {
