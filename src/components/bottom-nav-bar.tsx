@@ -5,8 +5,8 @@ import { cn } from "@/lib/utils";
 import { Home, ShieldCheck, LandPlot, BookOpen } from "lucide-react";
 
 interface BottomNavBarProps {
-    activeView: 'home' | 'quests' | 'market';
-    setActiveView: (view: 'home' | 'quests' | 'market') => void;
+    activeView: 'home' | 'quests' | 'market' | 'academy';
+    setActiveView: (view: 'home' | 'quests' | 'market' | 'academy') => void;
 }
 
 export function BottomNavBar({ activeView, setActiveView }: BottomNavBarProps) {
@@ -24,18 +24,14 @@ export function BottomNavBar({ activeView, setActiveView }: BottomNavBarProps) {
                     <button
                         key={item.id}
                         type="button"
-                        onClick={() => setActiveView(item.id as 'home' | 'quests' | 'market')}
+                        onClick={() => setActiveView(item.id)}
                         className={cn(
                             "inline-flex flex-col items-center justify-center px-5 hover:bg-primary/10 group",
                             activeView === item.id ? "text-primary" : "text-muted-foreground"
                         )}
-                        disabled={item.id === 'academy'} // Disable academy for now
                     >
-                        <item.icon className={cn("w-5 h-5 mb-1", item.id === 'academy' && 'opacity-50')} />
-                        <span className={cn(
-                            "text-xs",
-                            item.id === 'academy' && 'opacity-50'
-                        )}>
+                        <item.icon className={cn("w-5 h-5 mb-1")} />
+                        <span className={cn("text-xs")}>
                             {item.label}
                         </span>
                     </button>
