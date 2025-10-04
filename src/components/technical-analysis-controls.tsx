@@ -20,7 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from './ui/checkbox';
 import { Label } from './ui/label';
-import type { Indicator } from '@/lib/types';
+import type { Indicator, ScreenerFilter } from '@/lib/types';
 
 
 interface ChartIndicatorsState {
@@ -31,9 +31,10 @@ interface ChartIndicatorsState {
 }
 interface TechnicalAnalysisControlsProps {
   onUpdateIndicators: (indicators: Indicator[]) => void;
+  onUpdateFilters: (filters: ScreenerFilter[]) => void;
 }
 
-export function TechnicalAnalysisControls({ onUpdateIndicators }: TechnicalAnalysisControlsProps) {
+export function TechnicalAnalysisControls({ onUpdateIndicators, onUpdateFilters }: TechnicalAnalysisControlsProps) {
     const [chartIndicators, setChartIndicators] = React.useState<ChartIndicatorsState>({
         sma20: false,
         sma50: false,
@@ -41,6 +42,10 @@ export function TechnicalAnalysisControls({ onUpdateIndicators }: TechnicalAnaly
         volume: false,
     });
     
+    const [filterIndicator, setFilterIndicator] = React.useState<string>('price');
+    const [filterCondition, setFilterCondition] = React.useState<string>('gt');
+    const [filterValue, setFilterValue] = React.useState<string>('');
+
     const handleCheckboxChange = (id: keyof ChartIndicatorsState) => {
         setChartIndicators(prev => ({ ...prev, [id]: !prev[id] }));
     };
@@ -53,34 +58,46 @@ export function TechnicalAnalysisControls({ onUpdateIndicators }: TechnicalAnaly
         onUpdateIndicators(activeIndicators);
     };
 
+    const handleApplyFilter = () => {
+        if (filterIndicator && filterCondition && filterValue) {
+            const newFilter: ScreenerFilter = {
+                indicator: filterIndicator as ScreenerFilter['indicator'],
+                condition: filterCondition as ScreenerFilter['condition'],
+                value: filterValue,
+            };
+            onUpdateFilters([newFilter]);
+        } else {
+            onUpdateFilters([]);
+        }
+    };
+
   return (
     <div className="grid gap-6 md:grid-cols-2">
       <Card>
         <CardHeader>
           <CardTitle>Stock Screener</CardTitle>
           <CardDescription>
-            Filter stocks based on technical indicators. (Coming Soon)
+            Filter stocks based on specific criteria.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="space-y-2">
               <Label>Indicator</Label>
-              <Select disabled>
+              <Select value={filterIndicator} onValueChange={setFilterIndicator}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select Indicator" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="rsi">RSI</SelectItem>
-                  <SelectItem value="sma">SMA (20)</SelectItem>
-                  <SelectItem value="sma_50">SMA (50)</SelectItem>
-                  <SelectItem value="volume">Volume</SelectItem>
+                  <SelectItem value="price">Price</SelectItem>
+                  <SelectItem value="marketCap" disabled>Market Cap</SelectItem>
+                  <SelectItem value="changePercent" disabled>Change (%)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
               <Label>Condition</Label>
-              <Select disabled>
+              <Select value={filterCondition} onValueChange={setFilterCondition}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select Condition" />
                 </SelectTrigger>
@@ -93,10 +110,15 @@ export function TechnicalAnalysisControls({ onUpdateIndicators }: TechnicalAnaly
             </div>
             <div className="space-y-2">
               <Label>Value</Label>
-              <Input placeholder="e.g., 70" disabled />
+              <Input 
+                placeholder="e.g., 150" 
+                value={filterValue}
+                onChange={e => setFilterValue(e.target.value)}
+                type="number"
+              />
             </div>
           </div>
-          <Button disabled>Apply Filter</Button>
+          <Button onClick={handleApplyFilter}>Apply Filter</Button>
         </CardContent>
       </Card>
       <Card>

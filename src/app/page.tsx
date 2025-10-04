@@ -11,7 +11,7 @@ import { StockChart } from '@/components/stock-chart';
 import { PlayerProfile } from '@/components/player-profile';
 import { QuestBoard } from '@/components/quest-board';
 import { TechnicalAnalysisControls } from '@/components/technical-analysis-controls';
-import type { Stock, Indicator } from '@/lib/types';
+import type { Stock, Indicator, ScreenerFilter } from '@/lib/types';
 
 
 type ActiveView = 'chart' | 'watchlist' | 'analysis';
@@ -19,22 +19,51 @@ type ActiveView = 'chart' | 'watchlist' | 'analysis';
 export default function Home() {
   const [activeView, setActiveView] = React.useState<ActiveView>('chart');
   const [activeIndicators, setActiveIndicators] = React.useState<Indicator[]>([]);
+  const [activeFilters, setActiveFilters] = React.useState<ScreenerFilter[]>([]);
 
   const handleUpdateIndicators = (indicators: Indicator[]) => {
     setActiveIndicators(indicators);
     setActiveView('chart');
   };
 
+  const handleUpdateFilters = (filters: ScreenerFilter[]) => {
+    setActiveFilters(filters);
+    setActiveView('watchlist'); 
+  };
+  
+  const filteredStocks = React.useMemo(() => {
+    if (activeFilters.length === 0) {
+      return initialStocks;
+    }
+    
+    return initialStocks.filter(stock => {
+      return activeFilters.every(filter => {
+        if (filter.indicator === 'price') {
+            const price = stock.price;
+            const filterValue = Number(filter.value);
+            switch (filter.condition) {
+                case 'gt': return price > filterValue;
+                case 'lt': return price < filterValue;
+                case 'eq': return price === filterValue;
+                default: return true;
+            }
+        }
+        return true;
+      });
+    });
+  }, [activeFilters]);
+
+
   const renderContent = () => {
     switch (activeView) {
       case 'chart':
-        return <StockChart stocks={initialStocks} indicators={activeIndicators} />;
+        return <StockChart stocks={filteredStocks} indicators={activeIndicators} />;
       case 'watchlist':
-        return <StockWatchlist initialData={initialStocks} />;
+        return <StockWatchlist initialData={filteredStocks} />;
       case 'analysis':
-        return <TechnicalAnalysisControls onUpdateIndicators={handleUpdateIndicators} />;
+        return <TechnicalAnalysisControls onUpdateIndicators={handleUpdateIndicators} onUpdateFilters={handleUpdateFilters}/>;
       default:
-        return <StockChart stocks={initialStocks} indicators={activeIndicators} />;
+        return <StockChart stocks={filteredStocks} indicators={activeIndicators} />;
     }
   };
 

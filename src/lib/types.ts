@@ -29,3 +29,9 @@ export type Indicator = {
   type: 'SMA' | 'RSI' | 'Volume';
   period?: number;
 };
+
+export type ScreenerFilter = {
+  indicator: 'price' | 'marketCap' | 'changePercent';
+  condition: 'gt' | 'lt' | 'eq';
+  value: string;
+};
