@@ -15,8 +15,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getStockName } from '@/lib/utils';
 import { NewsWatchView } from '@/components/news-watch-view';
 import { SplashScreen } from '@/components/splash-screen';
-import { WelcomeDialog } from '@/components/welcome-dialog';
 import Image from 'next/image';
+import { WelcomeMessage } from '@/components/welcome-message';
 
 type ActiveView = 'home' | 'quests' | 'market' | 'newswatch';
 type ChartData = (Record<string, string | number> & { time: string })[];
@@ -41,8 +41,8 @@ const generateInitialChartData = (stocks: Stock[]): ChartData => {
     stocks.forEach(stock => {
       const changeFactor = (Math.random() - 0.5) * 0.01;
       prices[stock.ticker] *= 1 + changeFactor;
-      if (i===59) {
-          prices[stock.ticker] = stock.price;
+      if (i === 59) {
+        prices[stock.ticker] = stock.price;
       }
       dataPoint[stock.ticker] = parseFloat(prices[stock.ticker].toFixed(2));
     });
@@ -61,7 +61,7 @@ export default function Home() {
   const [watchlist, setWatchlist] = React.useState<WatchlistItem[]>(() =>
     initialStocks.map(s => ({ ...s, lastPrice: s.price }))
   );
-  
+
   const [chartData, setChartData] = React.useState<ChartData>(() =>
     generateInitialChartData(initialStocks)
   );
@@ -73,12 +73,16 @@ export default function Home() {
       const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
       if (!hasSeenWelcome) {
         setShowWelcome(true);
-        localStorage.setItem('hasSeenWelcome', 'true');
       }
     }, 2500);
 
     return () => clearTimeout(splashTimer);
   }, []);
+  
+  const handleWelcomeDismiss = () => {
+    setShowWelcome(false);
+    localStorage.setItem('hasSeenWelcome', 'true');
+  };
 
   const handleAddStock = (ticker: string) => {
     if (watchlist.find(s => s.ticker.toUpperCase() === ticker.toUpperCase())) {
@@ -94,24 +98,24 @@ export default function Home() {
       marketCap: 'N/A',
       lastPrice: newPrice,
     };
-    
+
     // Add new stock to watchlist
     setWatchlist(prev => [...prev, newStock]);
 
     // Add initial data for the new stock to the chart
     setChartData(prevData => {
-        const newData = [...prevData];
-        newData.forEach(dataPoint => {
-            dataPoint[newStock.ticker] = newStock.price * (1 + (Math.random() - 0.5) * 0.05);
-        });
-        return newData;
+      const newData = [...prevData];
+      newData.forEach(dataPoint => {
+        dataPoint[newStock.ticker] =
+          newStock.price * (1 + (Math.random() - 0.5) * 0.05);
+      });
+      return newData;
     });
   };
-  
+
   const handleRemoveStock = (ticker: string) => {
     setWatchlist(prev => prev.filter(stock => stock.ticker !== ticker));
   };
-
 
   React.useEffect(() => {
     const interval = setInterval(() => {
@@ -135,27 +139,29 @@ export default function Home() {
       // Update chart data
       setChartData(currentData => {
         if (newWatchlist.length === 0) return [];
-        
+
         const newDataPoint: Record<string, string | number> & { time: string } = {
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+          time: new Date().toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+          }),
         };
 
         newWatchlist.forEach(stock => {
           newDataPoint[stock.ticker] = stock.price;
         });
-        
+
         const newData = [...currentData, newDataPoint];
         if (newData.length > 60) {
           newData.shift();
         }
         return newData;
       });
-
     }, 1500);
 
     return () => clearInterval(interval);
   }, [watchlist]);
-
 
   const filteredStocks = React.useMemo(() => {
     if (filters.length === 0) {
@@ -176,19 +182,21 @@ export default function Home() {
     });
   }, [watchlist, filters]);
 
-
   const renderContent = () => {
     switch (activeView) {
       case 'home':
         return (
-          <div className="flex flex-col items-center justify-center h-full p-4">
-            <Image
-              src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXlweGhyZjNkZm02YXQ2NGZnMDJvbXA4YWMxMmlpYnJhOXc4cjZnMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/8WiVcu7MerGtarBGGU/giphy.gif"
-              alt="Welcome GIF"
-              width={200}
-              height={200}
-              unoptimized
-            />
+          <div className="flex flex-col items-center justify-center h-full p-4 space-y-8">
+            <div className="flex flex-col md:flex-row items-center justify-center gap-8">
+              <Image
+                src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXlweGhyZjNkZm02YXQ2NGZnMDJvbXA4YWMxMmlpYnJhOXc4cjZnMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/8WiVcu7MerGtarBGGU/giphy.gif"
+                alt="Welcome GIF"
+                width={200}
+                height={200}
+                unoptimized
+              />
+              {showWelcome && <WelcomeMessage onDismiss={handleWelcomeDismiss} />}
+            </div>
             <WorldMap />
           </div>
         );
@@ -202,23 +210,27 @@ export default function Home() {
         return (
           <div className="p-4 space-y-4">
             <Tabs defaultValue="chart">
-              <TabsList className='grid w-full grid-cols-3'>
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="chart">Stock Chart</TabsTrigger>
                 <TabsTrigger value="watchlist">Watchlist</TabsTrigger>
                 <TabsTrigger value="analysis">Analysis</TabsTrigger>
               </TabsList>
               <TabsContent value="chart" className="mt-4">
-                <StockChart stocks={filteredStocks} indicators={indicators} chartData={chartData} />
+                <StockChart
+                  stocks={filteredStocks}
+                  indicators={indicators}
+                  chartData={chartData}
+                />
               </TabsContent>
               <TabsContent value="watchlist" className="mt-4">
-                <StockWatchlist 
-                  watchlistData={filteredStocks} 
+                <StockWatchlist
+                  watchlistData={filteredStocks}
                   onAddStock={handleAddStock}
                   onRemoveStock={handleRemoveStock}
                 />
               </TabsContent>
               <TabsContent value="analysis" className="mt-4">
-                <TechnicalAnalysisControls 
+                <TechnicalAnalysisControls
                   onUpdateIndicators={setIndicators}
                   onUpdateFilters={setFilters}
                 />
@@ -232,7 +244,7 @@ export default function Home() {
         return <WorldMap />;
     }
   };
-  
+
   if (showSplash) {
     return <SplashScreen />;
   }
@@ -242,7 +254,6 @@ export default function Home() {
       <PlayerHeader />
       <main className="flex-1 overflow-y-auto pb-20">{renderContent()}</main>
       <BottomNavBar activeView={activeView} setActiveView={setActiveView} />
-       <WelcomeDialog open={showWelcome} onOpenChange={setShowWelcome} />
     </div>
   );
 }
