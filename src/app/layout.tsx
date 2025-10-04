@@ -17,7 +17,7 @@ const fontHeadline = Press_Start_2P({
 });
 
 export const metadata: Metadata = {
-  title: 'TradeQuest',
+  title: 'StockWatch',
   description: 'An RPG for learning investment.',
 };
 

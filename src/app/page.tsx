@@ -14,6 +14,7 @@ import type { Indicator, ScreenerFilter, Stock, WatchlistItem } from '@/lib/type
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getStockName } from '@/lib/utils';
 import { NewsWatchView } from '@/components/news-watch-view';
+import { SplashScreen } from '@/components/splash-screen';
 
 type ActiveView = 'home' | 'quests' | 'market' | 'newswatch';
 type ChartData = (Record<string, string | number> & { time: string })[];
@@ -38,6 +39,9 @@ const generateInitialChartData = (stocks: Stock[]): ChartData => {
     stocks.forEach(stock => {
       const changeFactor = (Math.random() - 0.5) * 0.01;
       prices[stock.ticker] *= 1 + changeFactor;
+      if (i===59) {
+          prices[stock.ticker] = stock.price;
+      }
       dataPoint[stock.ticker] = parseFloat(prices[stock.ticker].toFixed(2));
     });
     data.push(dataPoint);
@@ -49,6 +53,7 @@ export default function Home() {
   const [activeView, setActiveView] = React.useState<ActiveView>('home');
   const [indicators, setIndicators] = React.useState<Indicator[]>([]);
   const [filters, setFilters] = React.useState<ScreenerFilter[]>([]);
+  const [showSplash, setShowSplash] = React.useState(true);
 
   const [watchlist, setWatchlist] = React.useState<WatchlistItem[]>(() =>
     initialStocks.map(s => ({ ...s, lastPrice: s.price }))
@@ -58,20 +63,39 @@ export default function Home() {
     generateInitialChartData(initialStocks)
   );
 
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, []);
+
   const handleAddStock = (ticker: string) => {
     if (watchlist.find(s => s.ticker.toUpperCase() === ticker.toUpperCase())) {
       return;
     }
+    const newPrice = parseFloat((Math.random() * 500 + 20).toFixed(2));
     const newStock: WatchlistItem = {
       ticker: ticker.toUpperCase(),
       name: getStockName(ticker),
-      price: parseFloat((Math.random() * 500 + 20).toFixed(2)),
+      price: newPrice,
       change: 0,
       changePercent: 0,
       marketCap: 'N/A',
-      lastPrice: 0,
+      lastPrice: newPrice,
     };
+    
+    // Add new stock to watchlist
     setWatchlist(prev => [...prev, newStock]);
+
+    // Add initial data for the new stock to the chart
+    setChartData(prevData => {
+        const newData = [...prevData];
+        newData.forEach(dataPoint => {
+            dataPoint[newStock.ticker] = newStock.price * (1 + (Math.random() - 0.5) * 0.05);
+        });
+        return newData;
+    });
   };
   
   const handleRemoveStock = (ticker: string) => {
@@ -85,7 +109,7 @@ export default function Home() {
       const newWatchlist = watchlist.map(stock => {
         const changeFactor = (Math.random() - 0.5) * 0.02; // -1% to +1% change
         const newPrice = stock.price * (1 + changeFactor);
-        const originalPrice = stock.price - stock.change;
+        const originalPrice = stock.price / (1 + stock.changePercent / 100);
         const change = newPrice - originalPrice;
         const changePercent = (change / originalPrice) * 100;
         return {
@@ -187,6 +211,10 @@ export default function Home() {
         return <WorldMap />;
     }
   };
+  
+  if (showSplash) {
+    return <SplashScreen />;
+  }
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-background font-body">
