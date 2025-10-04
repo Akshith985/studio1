@@ -1,12 +1,10 @@
+
 'use client';
 
 import * as React from 'react';
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 
@@ -16,7 +14,7 @@ export function PlayerProfile() {
   const xpToNextLevel = 100;
 
   return (
-    <Card className="w-64 border-0 shadow-none">
+    <Card className="w-64 border-0 shadow-none bg-transparent">
       <CardContent className="p-2">
         <div className="flex items-center justify-between">
             <div className='w-full'>
