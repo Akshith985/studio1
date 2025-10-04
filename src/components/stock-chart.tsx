@@ -2,7 +2,7 @@
 'use client';
 
 import * as React from 'react';
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, Line } from 'recharts';
 import {
   Card,
   CardContent,
@@ -15,7 +15,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { Stock } from '@/lib/types';
+import { Stock, Indicator } from '@/lib/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 const chartColors = {
@@ -26,11 +26,28 @@ const chartColors = {
   '--chart-5': 'hsl(var(--chart-5))',
 };
 
+const indicatorColors = ['#ff7300', '#387908', '#f83245', '#9724a1'];
+
 interface StockChartProps {
     stocks: Stock[];
+    indicators: Indicator[];
 }
 
-export function StockChart({ stocks }: StockChartProps) {
+// Helper function to calculate SMA
+const calculateSMA = (data: any[], dataKey: string, period: number) => {
+    if (!data || data.length < period) return [];
+    
+    const smaData = [];
+    for (let i = period - 1; i < data.length; i++) {
+        const window = data.slice(i - period + 1, i + 1);
+        const sum = window.reduce((acc, point) => acc + (point[dataKey] || 0), 0);
+        smaData.push({ ...data[i], sma: parseFloat((sum / period).toFixed(2)) });
+    }
+    return smaData;
+};
+
+
+export function StockChart({ stocks, indicators }: StockChartProps) {
     
     const chartConfig = React.useMemo(() => {
         const config: any = {};
@@ -41,8 +58,19 @@ export function StockChart({ stocks }: StockChartProps) {
                 color: chartColors[chartColorKey],
             };
         });
+        indicators.forEach((indicator, index) => {
+            if(indicator.type === 'SMA') {
+                stocks.forEach(stock => {
+                    const key = `${stock.ticker}_SMA_${indicator.period}`;
+                    config[key] = {
+                        label: `${stock.ticker} SMA(${indicator.period})`,
+                        color: indicatorColors[index % indicatorColors.length],
+                    };
+                });
+            }
+        });
         return config;
-    }, [stocks]);
+    }, [stocks, indicators]);
     
     const [chartData, setChartData] = React.useState(() => {
       const now = new Date();
@@ -67,6 +95,33 @@ export function StockChart({ stocks }: StockChartProps) {
       }
       return initialData;
     });
+
+    const processedChartData = React.useMemo(() => {
+        let dataWithIndicators = [...chartData];
+
+        indicators.forEach(indicator => {
+            if (indicator.type === 'SMA' && indicator.period) {
+                stocks.forEach(stock => {
+                    const smaValues: (number|null)[] = [];
+                    for(let i=0; i < dataWithIndicators.length; i++) {
+                        if (i < indicator.period - 1) {
+                            smaValues.push(null);
+                        } else {
+                            const window = dataWithIndicators.slice(i - indicator.period + 1, i + 1);
+                            const sum = window.reduce((acc, point) => acc + (point[stock.ticker] || 0), 0);
+                            smaValues.push(parseFloat((sum / indicator.period).toFixed(2)));
+                        }
+                    }
+                    dataWithIndicators = dataWithIndicators.map((d, i) => ({
+                        ...d,
+                        [`${stock.ticker}_SMA_${indicator.period}`]: smaValues[i]
+                    }));
+                });
+            }
+        });
+
+        return dataWithIndicators;
+    }, [chartData, indicators, stocks]);
 
     React.useEffect(() => {
         const interval = setInterval(() => {
@@ -96,14 +151,14 @@ export function StockChart({ stocks }: StockChartProps) {
     }, [stocks]);
 
     const yDomain = React.useMemo(() => {
-        if (chartData.length === 0) return ['auto', 'auto'];
-        const allPrices = chartData.flatMap(d => stocks.map(s => d[s.ticker])).filter(p => p !== undefined);
+        if (processedChartData.length === 0) return ['auto', 'auto'];
+        const allPrices = processedChartData.flatMap(d => stocks.map(s => d[s.ticker])).filter(p => p !== undefined && p !== null);
         if (allPrices.length === 0) return ['auto', 'auto'];
         const min = Math.min(...allPrices);
         const max = Math.max(...allPrices);
         const padding = (max - min) * 0.1;
         return [Math.max(0, min - padding), max + padding];
-    }, [chartData, stocks]);
+    }, [processedChartData, stocks]);
 
 
     return (
@@ -116,10 +171,10 @@ export function StockChart({ stocks }: StockChartProps) {
             </CardHeader>
             <CardContent>
                 <ChartContainer config={chartConfig} className="h-[300px] w-full">
-                  <AreaChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                  <AreaChart data={processedChartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                       <defs>
                         {Object.keys(chartConfig).map((key) => (
-                           <linearGradient key={key} id={`fill-${key}`} x1="0" y1="0" x2="0" y2="1">
+                           <linearGradient key={key} id={`fill-${key.replace('_','-')}`} x1="0" y1="0" x2="0" y2="1">
                              <stop offset="5%" stopColor={chartConfig[key].color} stopOpacity={0.8} />
                              <stop offset="95%" stopColor={chartConfig[key].color} stopOpacity={0.1} />
                            </linearGradient>
@@ -145,13 +200,16 @@ export function StockChart({ stocks }: StockChartProps) {
                         content={<ChartTooltipContent 
                             indicator="line" 
                             labelClassName="font-bold text-lg"
-                            formatter={(value, name) => (
+                            formatter={(value, name) => {
+                                const config = chartConfig[name as string];
+                                if (!config) return null;
+                                return (
                                 <div className="flex items-center gap-2">
-                                    <div className="w-3 h-3 rounded-full" style={{backgroundColor: chartConfig[name as string]?.color}}></div>
-                                    <span className="font-medium">{name}</span>
+                                    <div className="w-3 h-3 rounded-full" style={{backgroundColor: config.color}}></div>
+                                    <span className="font-medium">{config.label}</span>
                                     <span className="text-muted-foreground text-sm font-mono">${Number(value).toFixed(2)}</span>
                                 </div>
-                            )}
+                            )}}
                         />}
                       />
                       <Legend />
@@ -167,6 +225,25 @@ export function StockChart({ stocks }: StockChartProps) {
                           dot={false}
                         />
                       ))}
+                      {indicators.map(indicator => {
+                        if (indicator.type === 'SMA') {
+                            return stocks.map(stock => {
+                                const dataKey = `${stock.ticker}_SMA_${indicator.period}`;
+                                return (
+                                    <Line
+                                        key={dataKey}
+                                        dataKey={dataKey}
+                                        type="monotone"
+                                        stroke={chartConfig[dataKey].color}
+                                        strokeWidth={2}
+                                        dot={false}
+                                        name={chartConfig[dataKey].label}
+                                    />
+                                );
+                            });
+                        }
+                        return null;
+                      })}
                   </AreaChart>
                 </ChartContainer>
             </CardContent>

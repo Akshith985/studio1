@@ -1,3 +1,4 @@
+
 export type Stock = {
   ticker: string;
   name: string;
@@ -22,4 +23,9 @@ export type Quest = {
   description: string;
   xp: number;
   status: 'available' | 'completed';
+};
+
+export type Indicator = {
+  type: 'SMA' | 'RSI' | 'Volume';
+  period?: number;
 };

@@ -11,28 +11,30 @@ import { StockChart } from '@/components/stock-chart';
 import { PlayerProfile } from '@/components/player-profile';
 import { QuestBoard } from '@/components/quest-board';
 import { TechnicalAnalysisControls } from '@/components/technical-analysis-controls';
-import {
-  Card,
-  CardContent,
-} from '@/components/ui/card';
-import { cn } from '@/lib/utils';
+import type { Stock, Indicator } from '@/lib/types';
 
 
 type ActiveView = 'chart' | 'watchlist' | 'analysis';
 
 export default function Home() {
   const [activeView, setActiveView] = React.useState<ActiveView>('chart');
+  const [activeIndicators, setActiveIndicators] = React.useState<Indicator[]>([]);
+
+  const handleUpdateIndicators = (indicators: Indicator[]) => {
+    setActiveIndicators(indicators);
+    setActiveView('chart');
+  };
 
   const renderContent = () => {
     switch (activeView) {
       case 'chart':
-        return <StockChart stocks={initialStocks} />;
+        return <StockChart stocks={initialStocks} indicators={activeIndicators} />;
       case 'watchlist':
         return <StockWatchlist initialData={initialStocks} />;
       case 'analysis':
-        return <TechnicalAnalysisControls />;
+        return <TechnicalAnalysisControls onUpdateIndicators={handleUpdateIndicators} />;
       default:
-        return <StockChart stocks={initialStocks} />;
+        return <StockChart stocks={initialStocks} indicators={activeIndicators} />;
     }
   };
 
