@@ -13,9 +13,9 @@ import { TechnicalAnalysisControls } from '@/components/technical-analysis-contr
 import type { Indicator, ScreenerFilter, Stock, WatchlistItem } from '@/lib/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getStockName } from '@/lib/utils';
-import { AcademyView } from '@/components/academy-view';
+import { NewsWatchView } from '@/components/news-watch-view';
 
-type ActiveView = 'home' | 'quests' | 'market' | 'academy';
+type ActiveView = 'home' | 'quests' | 'market' | 'newswatch';
 type ChartData = (Record<string, string | number> & { time: string })[];
 
 const generateInitialChartData = (stocks: Stock[]): ChartData => {
@@ -181,8 +181,8 @@ export default function Home() {
             </Tabs>
           </div>
         );
-      case 'academy':
-        return <AcademyView />;
+      case 'newswatch':
+        return <NewsWatchView />;
       default:
         return <WorldMap />;
     }

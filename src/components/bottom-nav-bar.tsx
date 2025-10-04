@@ -2,11 +2,11 @@
 'use client';
 
 import { cn } from "@/lib/utils";
-import { Home, ShieldCheck, LandPlot, BookOpen } from "lucide-react";
+import { Home, ShieldCheck, LandPlot, Newspaper } from "lucide-react";
 
 interface BottomNavBarProps {
-    activeView: 'home' | 'quests' | 'market' | 'academy';
-    setActiveView: (view: 'home' | 'quests' | 'market' | 'academy') => void;
+    activeView: 'home' | 'quests' | 'market' | 'newswatch';
+    setActiveView: (view: 'home' | 'quests' | 'market' | 'newswatch') => void;
 }
 
 export function BottomNavBar({ activeView, setActiveView }: BottomNavBarProps) {
@@ -14,7 +14,7 @@ export function BottomNavBar({ activeView, setActiveView }: BottomNavBarProps) {
         { id: 'home', icon: Home, label: 'Home' },
         { id: 'quests', icon: ShieldCheck, label: 'Quests' },
         { id: 'market', icon: LandPlot, label: 'Market' },
-        { id: 'academy', icon: BookOpen, label: 'Academy' },
+        { id: 'newswatch', icon: Newspaper, label: 'Newswatch' },
     ] as const;
 
     return (
