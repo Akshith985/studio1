@@ -35,60 +35,19 @@ import {
 import { AddStockDialog } from './add-stock-dialog';
 import { PriceAlertDialog } from './price-alert-dialog';
 import { NewsSummaryDialog } from './news-summary-dialog';
-import type { Stock, WatchlistItem } from '@/lib/types';
+import type { WatchlistItem } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
-export function StockWatchlist({ initialData }: { initialData: Stock[] }) {
-  const [watchlist, setWatchlist] = React.useState<WatchlistItem[]>(
-    initialData.map(s => ({ ...s, lastPrice: s.price }))
-  );
+interface StockWatchlistProps {
+  watchlistData: WatchlistItem[];
+  onAddStock: (ticker: string) => void;
+  onRemoveStock: (ticker: string) => void;
+}
+
+export function StockWatchlist({ watchlistData, onAddStock, onRemoveStock }: StockWatchlistProps) {
   const [activeDialog, setActiveDialog] = React.useState<
     { type: 'alert' | 'news'; ticker: string } | undefined
   >();
-
-  React.useEffect(() => {
-    const interval = setInterval(() => {
-      setWatchlist(currentWatchlist =>
-        currentWatchlist.map(stock => {
-          const changeFactor = (Math.random() - 0.5) * 0.02; // -1% to +1% change
-          const newPrice = stock.price * (1 + changeFactor);
-          const change = newPrice - (stock.price - stock.change);
-          const changePercent = (change / (stock.price-stock.change)) * 100;
-
-          return {
-            ...stock,
-            lastPrice: stock.price,
-            price: parseFloat(newPrice.toFixed(2)),
-            change: parseFloat(change.toFixed(2)),
-            changePercent: parseFloat(changePercent.toFixed(2)),
-          };
-        })
-      );
-    }, 2000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleAddStock = (ticker: string) => {
-    if (watchlist.find(s => s.ticker.toUpperCase() === ticker.toUpperCase())) {
-      // Stock already in watchlist
-      return;
-    }
-    const newStock: WatchlistItem = {
-      ticker: ticker.toUpperCase(),
-      name: 'New Stock',
-      price: parseFloat((Math.random() * 500 + 20).toFixed(2)),
-      change: 0,
-      changePercent: 0,
-      marketCap: 'N/A',
-      lastPrice: 0,
-    };
-    setWatchlist(prev => [...prev, newStock]);
-  };
-  
-  const handleRemoveStock = (ticker: string) => {
-    setWatchlist(prev => prev.filter(stock => stock.ticker !== ticker));
-  };
 
   const getPriceAnimationClass = (stock: WatchlistItem) => {
     if (stock.lastPrice === undefined || stock.lastPrice === stock.price) return '';
@@ -106,7 +65,7 @@ export function StockWatchlist({ initialData }: { initialData: Stock[] }) {
             </CardDescription>
           </div>
           <div className="ml-auto flex items-center gap-2">
-            <AddStockDialog onAddStock={handleAddStock} />
+            <AddStockDialog onAddStock={onAddStock} />
           </div>
         </CardHeader>
         <CardContent>
@@ -123,7 +82,7 @@ export function StockWatchlist({ initialData }: { initialData: Stock[] }) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {watchlist.map(stock => (
+              {watchlistData.map(stock => (
                 <TableRow key={stock.ticker}>
                   <TableCell>
                     <div className="font-medium">{stock.ticker}</div>
@@ -195,7 +154,7 @@ export function StockWatchlist({ initialData }: { initialData: Stock[] }) {
                           <Bell className="mr-2 h-4 w-4" />
                           Set Price Alert
                         </DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => handleRemoveStock(stock.ticker)} className="text-destructive">
+                        <DropdownMenuItem onSelect={() => onRemoveStock(stock.ticker)} className="text-destructive">
                           Remove from list
                         </DropdownMenuItem>
                       </DropdownMenuContent>
