@@ -16,8 +16,8 @@ import { TechnicalAnalysisControls } from '@/components/technical-analysis-contr
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen w-full flex-col bg-muted/40">
-      <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+    <div className="flex min-h-screen w-full flex-col bg-background">
+      <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-white/10 bg-background/95 px-4 backdrop-blur sm:px-6">
         <Sheet>
           <SheetTrigger asChild>
             <Button size="icon" variant="outline" className="sm:hidden">
@@ -35,7 +35,9 @@ export default function Home() {
           </SheetContent>
         </Sheet>
         <div className="relative flex-1">
-          <h1 className="text-lg font-semibold md:text-2xl">TradeQuest</h1>
+          <h1 className="font-headline text-lg font-semibold md:text-xl">
+            TradeQuest
+          </h1>
         </div>
         <div className="relative ml-auto flex-none">
           <PlayerProfile />
