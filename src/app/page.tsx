@@ -56,8 +56,7 @@ export default function Home() {
   const [indicators, setIndicators] = React.useState<Indicator[]>([]);
   const [filters, setFilters] = React.useState<ScreenerFilter[]>([]);
   const [showSplash, setShowSplash] = React.useState(true);
-  const [showWelcome, setShowWelcome] = React.useState(false);
-
+  
   const [watchlist, setWatchlist] = React.useState<WatchlistItem[]>(() =>
     initialStocks.map(s => ({ ...s, lastPrice: s.price }))
   );
@@ -69,20 +68,11 @@ export default function Home() {
   React.useEffect(() => {
     const splashTimer = setTimeout(() => {
       setShowSplash(false);
-      // Check if the user has seen the welcome message before
-      const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
-      if (!hasSeenWelcome) {
-        setShowWelcome(true);
-      }
     }, 2500);
 
     return () => clearTimeout(splashTimer);
   }, []);
   
-  const handleWelcomeDismiss = () => {
-    setShowWelcome(false);
-    localStorage.setItem('hasSeenWelcome', 'true');
-  };
 
   const handleAddStock = (ticker: string) => {
     if (watchlist.find(s => s.ticker.toUpperCase() === ticker.toUpperCase())) {
@@ -195,7 +185,7 @@ export default function Home() {
                 height={200}
                 unoptimized
               />
-              {showWelcome && <WelcomeMessage onDismiss={handleWelcomeDismiss} />}
+              <WelcomeMessage />
             </div>
             <WorldMap />
           </div>

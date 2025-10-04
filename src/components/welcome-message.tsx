@@ -1,14 +1,9 @@
 
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
-interface WelcomeMessageProps {
-  onDismiss: () => void;
-}
-
-export function WelcomeMessage({ onDismiss }: WelcomeMessageProps) {
+export function WelcomeMessage() {
   return (
     <Card className="max-w-sm animate-in fade-in-50 slide-in-from-bottom-5 duration-500">
       <CardHeader>
@@ -18,11 +13,6 @@ export function WelcomeMessage({ onDismiss }: WelcomeMessageProps) {
           journey?
         </CardDescription>
       </CardHeader>
-      <CardFooter>
-        <Button onClick={onDismiss} className="w-full">
-          Let's Go!
-        </Button>
-      </CardFooter>
     </Card>
   );
 }
