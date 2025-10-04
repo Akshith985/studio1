@@ -12,6 +12,7 @@ import { StockChart } from '@/components/stock-chart';
 import { TechnicalAnalysisControls } from '@/components/technical-analysis-controls';
 import type { Indicator, ScreenerFilter, Stock, WatchlistItem } from '@/lib/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { getStockName } from '@/lib/utils';
 
 type ActiveView = 'home' | 'quests' | 'market';
 type ChartData = (Record<string, string | number> & { time: string })[];
@@ -62,7 +63,7 @@ export default function Home() {
     }
     const newStock: WatchlistItem = {
       ticker: ticker.toUpperCase(),
-      name: 'New Stock',
+      name: getStockName(ticker),
       price: parseFloat((Math.random() * 500 + 20).toFixed(2)),
       change: 0,
       changePercent: 0,
